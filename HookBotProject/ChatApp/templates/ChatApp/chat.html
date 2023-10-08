@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://img.freepik.com/free-vector/geometric-science-education-background-vector-gradient-blue-digital-remix_53876-125993.jpg?size=626&ext=jpg&ga=GA1.1.1413502914.1696550400&semt=ais');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .chat-container {
+            flex-grow: 1; /* Grow to fill available space */
+            width: 70%; /* Set width to 80% of the parent container */
+            max-width: 800px; /* Set a maximum width if needed */
+            margin: 0 auto;
+            background-color: #333;
+            border-radius: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            display: flex;
+            flex-direction: column; /* Stack children vertically */
+        }
+        
+        .chat-header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .chat-body {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px 0;
+            flex-grow: 1;   
+        }
+        
+        .chat-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            word-wrap: break-word;
+        }
+        
+        .chat-message.user {
+            background-color: #3498db;
+            color: #fff;
+            text-align: right;
+        }
+        
+        .chat-message.assistant {
+            background-color: #e1e1e1;
+            color: #333;
+            text-align: left;
+        }
+        
+        .chat-input {
+            display: flex;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+        }
+        
+        #send-button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Chat with ChatGPT</h1>
+        </div>
+        <div class="chat-body">
+            <div class="chat-message user">
+                <p>Hello, ChatGPT!</p>
+            </div>
+            <div class="chat-message assistant">
+                <p>Hello! How can I assist you today?</p>
+            </div>
+            <!-- More chat messages go here -->
+        </div>
+        <div class="chat-input">
+            <form action="." method="POST">
+                {% csrf_token %}
+                       <input type="text" name="eur" placeholder="EUR">
+                       <input type="submit">
+                </form>
+        </div>
+    </div>
+    <script>
+        
+        document.addEventListener("DOMContentLoaded", function () {
+            const userInput = document.getElementById("user-input");
+            const sendButton = document.getElementById("send-button");
+            const chatBody = document.querySelector(".chat-body");
+    
+            sendButton.addEventListener("click", function () {
+                const userMessage = userInput.value.trim();
+    
+                if (userMessage) {
+                    // Add user's message to the chat UI
+                    addMessage("user", userMessage);
+    
+                    // Send user's message to ChatGPT and get a response
+                    sendToChatGPT(userMessage)
+                        .then((response) => {
+                            // Add ChatGPT's response to the chat UI
+                            addMessage("assistant", response);
+                        })
+                        .catch((error) => {
+                            console.error("Error communicating with ChatGPT:", error);
+                        });
+    
+                    // Clear the user input field
+                    userInput.value = "";
+                }
+            });
+    
+            function addMessage(sender, message) {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("chat-message", sender);
+                messageDiv.innerHTML = `<p>${message}</p>`;
+                chatBody.appendChild(messageDiv);
+    
+                // Scroll to the bottom of the chat
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+    
+            function sendToChatGPT(userMessage) {
+                return fetch("/api/chatgpt/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", // Change content type to JSON
+                    },
+                    body: JSON.stringify({ message: userMessage }), // Send data as JSON
+                })
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        return data.response; // Assuming ChatGPT's response is in data.response
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
